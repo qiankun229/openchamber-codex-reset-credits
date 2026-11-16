@@ -15,6 +15,13 @@ The isolated preview has no access to OpenCode accounts or ChatGPT. Use it for
 Compact/Tickets/Mini, settings, narrow layouts, English/French, keyboard focus and
 confirmation/uncertain-result checks. Public screenshots must use synthetic data.
 
+For the repeatable Chromium reporting check, start the preview with
+`PORT=4179 bun tests/preview.ts`, then run `bun tests/report-panel.mjs` in another
+terminal with `PLAYWRIGHT_MODULE` pointing to an existing Playwright module.
+If needed, set `CHROMIUM_EXECUTABLE` to its installed Chromium binary.
+This optional check adds no production dependency; it uses only the synthetic
+preview and writes screenshots to a temporary directory printed in its output.
+
 Install the built checkout by folder in **Settings → Extensions**. Rebuild and
 reload after source changes; disable and re-enable after service changes. Users
 install ready-to-run `panel/` and `service/` entries, not TypeScript source.
@@ -33,7 +40,9 @@ the output paths must not already exist.
 ## Boundaries to preserve
 
 - Manifest: OpenChamber **>=2.5.0**, API version **1**, SDK development dependency **2.5.3**.
-- One rail panel, one Work Status section, one host service with `sqlite3` execution.
+- One rail panel, one Work Status section, one host service using integrated SQLite;
+  no external command on PATH. Reads use a short-lived host-runtime child with
+  timeout/output bounds. A runtime without a supported module fails explicitly.
 - Read-only access to the default local OpenCode 2 credential schema only.
 - Fixed internal ChatGPT endpoints; access tokens never leave the service except
   in authenticated requests to ChatGPT. No refresh-token handling or account switching.

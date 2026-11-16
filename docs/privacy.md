@@ -2,10 +2,14 @@
 
 ## What is read
 
-The host service runs `sqlite3 -readonly` against
+The host service uses integrated SQLite in read-only mode against
 `~/.local/share/opencode/opencode.db`. It selects OpenAI OAuth rows only: credential
 ID, label, active state, access token and ChatGPT account ID. It does **not** select
 the whole credential blob, refresh tokens, API keys or MCP credentials.
+
+Each read runs in a short-lived child of OpenChamber's own runtime, with a
+five-second timeout and a 2 MiB output limit. It does not execute an external
+`sqlite3` command or require a system Node on PATH.
 
 The service runs with your user’s permissions, **not in an OS sandbox**. Its local
 HTTP listener binds to `127.0.0.1` and requires OpenChamber’s service bearer token,
@@ -20,7 +24,7 @@ including for health checks. Display preferences use the host’s extension stor
 
 The HTTPS origin is fixed and redirects are rejected. Tokens stay in the service;
 the panel receives account labels/IDs, credit metadata and fixed error codes.
-Upstream error bodies and child-process diagnostics are not forwarded or logged.
+Upstream error bodies and SQLite diagnostics are not forwarded or logged.
 
 ## What never happens
 

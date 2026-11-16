@@ -46,8 +46,10 @@ connected in OpenCode. No account switching, extra sign-in or automatic redempti
 ## Install from GitHub
 
 Requires **OpenChamber 2.5.0+** on desktop or web, **OpenCode 2** with ChatGPT OAuth
-accounts in its default local database, and **`sqlite3` on the OpenChamber host**.
-macOS includes `sqlite3`; other hosts may need to install it.
+accounts in its default local database, and **integrated SQLite in the OpenChamber
+host runtime** (`node:sqlite`, or `bun:sqlite` under Bun). No external `sqlite3`
+installation is needed. A host without either module reports `SQLITE_UNAVAILABLE`;
+the app version alone does not establish runtime support.
 
 1. Open **Settings → Extensions → Add extension** in OpenChamber.
 2. Paste this repository URL:
@@ -56,8 +58,7 @@ macOS includes `sqlite3`; other hosts may need to install it.
    https://github.com/sofianbll/openchamber-codex-reset-credits
    ```
 
-3. Review and allow the **host service** capability, including `sqlite3` execution,
-   then enable **Codex resets**.
+3. Review and allow the **host service** capability, then enable **Codex resets**.
 4. Open **Codex resets** in the rail or expand its section in **Work Status**.
    Work Status’s section controls let you hide and reorder it.
 
@@ -71,10 +72,12 @@ verify it, extract it into a permanent folder and install that folder.
 
 ## Privacy & safety
 
-The service uses `sqlite3 -readonly` to select only OpenAI OAuth access tokens and
+The service uses integrated SQLite in read-only mode to select only OpenAI OAuth access tokens and
 account metadata from `~/.local/share/opencode/opencode.db`. It does **not** select
 refresh tokens, API keys or MCP credentials. Tokens remain inside the service;
 the panel receives account labels/IDs, credit metadata and bounded error codes.
+Each read briefly starts a child of the host's own runtime to enforce time and
+output limits. It does not run `sqlite3` or require a system Node on PATH.
 
 Requests go to fixed HTTPS ChatGPT endpoints, with redirects rejected. There are
 no database writes, sign-in refreshes, account switches or automatic consumption.

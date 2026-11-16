@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Use integrated SQLite instead of requiring an external `sqlite3` executable.
+  Hosts without an integrated module report `SQLITE_UNAVAILABLE`; no new sign-in
+  or account switching is introduced.
+- Add a full-panel bug report action with a reviewable, filtered diagnostic;
+  reports are submitted manually on GitHub, never sent automatically.
+
 - Remove the sidebar summary pills and labels; keep only accounts and tickets.
 - Replace Refresh and View panel text buttons with compact icons. In the full
   panel, Refresh sits beside the settings gear.

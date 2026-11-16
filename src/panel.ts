@@ -4,6 +4,7 @@ import { canRedeem, isRecord, parseCredits, type AccountSnapshot, type Credit, t
 import { messages } from './i18n.ts';
 import { icon, installIcons, type IconName } from './icons.ts';
 import { availableCount, defaultPreferences, parsePreferences, sidebarAccounts, VIEWS, type DisplayPreferences, type View } from './display.ts';
+import { BUG_REPORT_URL, reportDiagnostic, reportErrorCode } from './report.ts';
 
 const host = connectHost();
 const root = document.querySelector<HTMLElement>('#root')!;
@@ -13,6 +14,10 @@ let t = messages(locale);
 let snapshot: Snapshot | null = null;
 let loading = false;
 let notice = '';
+let currentErrorCode = 'unknown';
+let diagnosticsOpen = false;
+let reportOpenFailed = false;
+let diagnosticCopyFailed = false;
 let confirmation: { account: AccountSnapshot; credit: Credit } | null = null;
 let pending: string | null = null;
 let buttons: ButtonHandle[] = [];
@@ -86,7 +91,7 @@ function errorCode(error: unknown): string {
 function describeError(code: string): string {
   const text = code === 'SIGN_IN_REQUIRED' || code === 'ACCOUNT_ID_MISSING' ? t.auth :
     /PERMISSION|CAPABILITY|SERVICE_DISABLED|SERVICE_NOT|SERVICE_UNAVAILABLE/.test(code) || ['NOT_GRANTED', 'NO_SERVICE', 'DISABLED', 'DENIED'].includes(code) ? t.service :
-    code === 'SQLITE_MISSING' ? t.sqlite : code.startsWith('DATABASE_') ? t.database :
+    code === 'SQLITE_UNAVAILABLE' ? t.sqliteUnavailable : code === 'SQLITE_MISSING' ? t.sqlite : code.startsWith('DATABASE_') ? t.database :
     code === 'NOT_SUPPORTED' ? t.unsupported : code === 'ACCESS_DENIED' ? t.denied :
     code === 'RATE_LIMITED' ? t.limited : code === 'INVALID_RESPONSE' ? t.invalid :
     code === 'CODEX_UNREACHABLE' ? t.unreachable : code === 'CREDIT_UNAVAILABLE' ? t.unavailable :
@@ -135,9 +140,14 @@ async function refresh(force = false) {
     for (const account of snapshot.accounts) for (const credit of account.credits ?? []) {
       if (credit.redemption) blocked.delete(key(account, credit));
     }
-    if (!notice.startsWith(t.response) && !notice.startsWith(t.uncertain)) notice = '';
+    if (!notice.startsWith(t.response) && !notice.startsWith(t.uncertain)) {
+      notice = '';
+      currentErrorCode = reportErrorCode(snapshot.accounts.find(account => account.error)?.error);
+    }
   } catch (error) {
-    notice = describeError(error instanceof SyntaxError || error instanceof Error && error.message === 'INVALID_RESPONSE' ? 'INVALID_RESPONSE' : errorCode(error));
+    const code = error instanceof SyntaxError || error instanceof Error && error.message === 'INVALID_RESPONSE' ? 'INVALID_RESPONSE' : errorCode(error);
+    currentErrorCode = reportErrorCode(code);
+    notice = describeError(code);
   } finally {
     loading = false;
     render();
@@ -164,17 +174,21 @@ async function redeem(account: AccountSnapshot, credit: Credit) {
     if (response.status < 200 || response.status >= 300) {
       const code = isRecord(body) && typeof body.error === 'string' ? body.error : 'REDEMPTION_UNKNOWN';
       if (code === 'REDEMPTION_UNKNOWN' || code === 'ALREADY_REQUESTED') blocked.set(target, 'unknown');
+      currentErrorCode = reportErrorCode(code);
       notice = describeError(code);
     } else if (isRecord(body) && typeof body.code === 'string' && /^[a-zA-Z0-9_-]{1,80}$/.test(body.code)) {
       blocked.set(target, 'requested');
+      currentErrorCode = 'unknown';
       notice = `${t.response}: ${body.code}. ${t.requested}`;
       if (typeof body.windowsReset === 'number' && Number.isSafeInteger(body.windowsReset) && body.windowsReset >= 0) notice += ` ${t.windows}: ${body.windowsReset}.`;
     } else {
       blocked.set(target, 'unknown');
+      currentErrorCode = 'REDEMPTION_UNKNOWN';
       notice = t.uncertain;
     }
   } catch {
     blocked.set(target, 'unknown');
+    currentErrorCode = 'REDEMPTION_UNKNOWN';
     notice = t.uncertain;
   } finally {
     pending = null;
@@ -445,6 +459,66 @@ function panelControls() {
   return h('div', 'panel-controls', h('div', 'settings-bar', refreshButton, gear, settings), modes);
 }
 
+function reportFeedback(copied = false) {
+  const openStatus = root.querySelector('.report-open-status');
+  if (openStatus) openStatus.textContent = reportOpenFailed ? t.openReportFailed : '';
+  const copyStatus = root.querySelector('.report-copy-status');
+  if (copyStatus) copyStatus.textContent = diagnosticCopyFailed ? t.copyDiagnosticFailed : copied ? t.diagnosticCopied : '';
+  const manual = root.querySelector<HTMLElement>('.report-manual');
+  if (manual) manual.hidden = !reportOpenFailed && !diagnosticCopyFailed;
+}
+
+function bugReport() {
+  const section = h('section', 'bug-report');
+  section.setAttribute('aria-label', t.reportBug);
+  const openStatus = h('p', 'report-status report-open-status', reportOpenFailed ? t.openReportFailed : '');
+  openStatus.setAttribute('role', 'status');
+  const url = h('code', 'report-url', BUG_REPORT_URL);
+  url.tabIndex = 0;
+  const manual = h('p', 'report-manual', t.manualReport, ' ', url);
+  manual.hidden = !reportOpenFailed && !diagnosticCopyFailed;
+  button(section, {
+    label: t.reportBug, variant: 'outline',
+    onClick: () => {
+      void host.openUrl(BUG_REPORT_URL).then(() => {
+        reportOpenFailed = false;
+        reportFeedback();
+      }).catch(() => {
+        reportOpenFailed = true;
+        reportFeedback();
+      });
+    },
+  }, 'report-bug');
+  section.append(h('p', 'report-hint', t.reportHint), openStatus, manual);
+  const diagnostic = reportDiagnostic({ surface: context?.surface, view: mode, language: locale, error: currentErrorCode });
+  const preview = h('textarea', 'report-preview');
+  preview.readOnly = true; preview.rows = 4; preview.value = diagnostic;
+  preview.setAttribute('aria-label', t.diagnostics);
+  preview.dataset.focus = 'report-preview';
+  const copyStatus = h('p', 'report-status report-copy-status', diagnosticCopyFailed ? t.copyDiagnosticFailed : '');
+  copyStatus.setAttribute('role', 'status');
+  const summary = h('summary', '', t.diagnostics);
+  summary.dataset.focus = 'report-diagnostics';
+  const details = h('details', 'report-diagnostics', summary, h('p', 'report-hint', t.diagnosticsHint), preview);
+  details.open = diagnosticsOpen;
+  details.ontoggle = () => { diagnosticsOpen = details.open; };
+  button(details, {
+    label: t.copyDiagnostic, variant: 'outline',
+    onClick: () => {
+      void host.writeClipboard(diagnostic).then(() => {
+        diagnosticCopyFailed = false;
+        reportFeedback(true);
+      }).catch(() => {
+        diagnosticCopyFailed = true;
+        reportFeedback();
+      });
+    },
+  }, 'copy-diagnostic');
+  details.append(copyStatus);
+  section.append(details);
+  return section;
+}
+
 function render() {
   const previousFocus = (document.activeElement as HTMLElement | null)?.dataset.focus;
   buttons.forEach(handle => handle.dispose()); buttons = [];
@@ -479,6 +553,7 @@ function render() {
   } else {
     if (snapshot) view.append(h('p', 'footnote', `${t.updated}: ${date(snapshot.fetchedAt)}`));
     view.append(h('p', 'footnote', t.footnote));
+    view.append(bugReport());
   }
   root.replaceChildren(view);
   if (previousFocus) focus(previousFocus);
