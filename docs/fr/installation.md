@@ -37,10 +37,10 @@ Le service **n’est pas isolé par une sandbox système**.
 ## Mises à jour et version fixe
 
 Utilisez les contrôles de mise à jour dans **Paramètres → Extensions**. Pour fixer
-la version initiale une fois publiée :
+la version 0.1.1 une fois publiée :
 
 ```text
-https://github.com/sofianbll/openchamber-codex-reset-credits#v0.1.0
+https://github.com/sofianbll/openchamber-codex-reset-credits#v0.1.1
 ```
 
 Une URL avec tag reste sur cette version. Sans tag, elle suit la branche par défaut.

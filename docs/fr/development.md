@@ -28,7 +28,7 @@ après modification ; désactivez puis réactivez après un changement du servic
 Les utilisateurs installent les entrées compilées `panel/` et `service/`, pas le TypeScript.
 
 ```sh
-bun run package /absolute/path/to/new/openchamber-codex-reset-credits-0.1.0
+bun run package /absolute/path/to/new/openchamber-codex-reset-credits-0.1.1
 bun run docs:dev
 bun run docs:build
 ```

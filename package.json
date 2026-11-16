@@ -1,6 +1,6 @@
 {
   "name": "openchamber-codex-reset-credits",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "View and redeem Codex reset credits for the ChatGPT accounts already connected in OpenCode.",
   "private": true,
   "license": "MIT",
