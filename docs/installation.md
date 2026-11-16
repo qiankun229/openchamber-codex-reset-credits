@@ -35,11 +35,11 @@ Git must be available to OpenChamber for URL installs. The service is **not an O
 
 ## Updates & fixed versions
 
-Use the extension update controls in **Settings → Extensions**. To pin the initial
+Use the extension update controls in **Settings → Extensions**. To pin the 0.1.1
 release once published, use:
 
 ```text
-https://github.com/sofianbll/openchamber-codex-reset-credits#v0.1.0
+https://github.com/sofianbll/openchamber-codex-reset-credits#v0.1.1
 ```
 
 A pinned tag stays on that version. The unpinned URL follows the default branch.

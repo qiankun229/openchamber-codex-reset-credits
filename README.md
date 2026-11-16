@@ -63,7 +63,7 @@ the app version alone does not establish runtime support.
    Work Status’s section controls let you hide and reorder it.
 
 The compiled panel and service ship with the extension; users do not need Bun or
-a build step. Git is needed for URL installation. Append **`#v0.1.0`** to pin that
+a build step. Git is needed for URL installation. Append **`#v0.1.1`** to pin that
 release once published. Alternatively, download the prebuilt archive and published
 SHA-256 from [Releases](https://github.com/sofianbll/openchamber-codex-reset-credits/releases),
 verify it, extract it into a permanent folder and install that folder.
@@ -114,7 +114,7 @@ bun test
 bun run typecheck
 bun run build
 bun run preview
-bun run package /absolute/path/to/new/openchamber-codex-reset-credits-0.1.0
+bun run package /absolute/path/to/new/openchamber-codex-reset-credits-0.1.1
 bun run docs:dev
 ```
 

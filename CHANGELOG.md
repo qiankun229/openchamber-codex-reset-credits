@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.1 — 2026-11-16
+
 - Use integrated SQLite instead of requiring an external `sqlite3` executable.
   Hosts without an integrated module report `SQLITE_UNAVAILABLE`; no new sign-in
   or account switching is introduced.
@@ -11,6 +13,9 @@
 - Remove the sidebar summary pills and labels; keep only accounts and tickets.
 - Replace Refresh and View panel text buttons with compact icons. In the full
   panel, Refresh sits beside the settings gear.
+
+The account reader passes Windows CI under Bun. Packaged Windows/Electron still
+needs a real installation check; no live credit consumption has been verified.
 
 ## 0.1.0 — 2026-10-28
 

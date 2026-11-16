@@ -27,7 +27,7 @@ reload after source changes; disable and re-enable after service changes. Users
 install ready-to-run `panel/` and `service/` entries, not TypeScript source.
 
 ```sh
-bun run package /absolute/path/to/new/openchamber-codex-reset-credits-0.1.0
+bun run package /absolute/path/to/new/openchamber-codex-reset-credits-0.1.1
 bun run docs:dev
 bun run docs:build
 ```
