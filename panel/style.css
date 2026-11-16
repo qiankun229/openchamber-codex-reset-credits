@@ -172,6 +172,16 @@ body { margin: 0; color: var(--oc-fg); background: transparent; }
 .cr .status-action:hover { color: var(--oc-fg); background: var(--oc-hover); }
 .status-action .icon { --s: 14; }
 .footnote { margin-top: 8px !important; color: var(--oc-muted); font-size: 11px; }
+.bug-report { display: grid; gap: 6px; margin-top: 12px; font-size: 11px; }
+.report-hint, .report-manual { color: var(--oc-muted); overflow-wrap: anywhere; }
+.report-status { color: var(--oc-muted); }
+.report-status:empty, .report-manual[hidden] { display: none; }
+.report-url { user-select: text; font: inherit; }
+.report-diagnostics { min-width: 0; }
+.report-diagnostics summary { cursor: pointer; color: var(--oc-muted); }
+.report-diagnostics summary:focus-visible, .report-preview:focus-visible, .report-url:focus-visible { outline: 2px solid var(--oc-focus); outline-offset: 2px; }
+.report-diagnostics[open] > * + * { margin-top: 6px; }
+.report-preview { display: block; width: 100%; resize: vertical; padding: 6px; border: 1px solid var(--oc-border); border-radius: 6px; color: var(--oc-fg); background: var(--oc-subtle); font: 11px/1.4 var(--oc-mono); }
 .button-slot { display: inline-flex; min-width: 0; max-width: 100%; }
 .cr .button-slot button { padding: 4px 8px; border: 1px solid var(--oc-border); border-radius: 6px; min-height: 26px; text-align: center; overflow-wrap: anywhere; }
 .cr button:disabled { cursor: default; opacity: .5; }

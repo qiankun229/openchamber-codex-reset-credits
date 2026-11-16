@@ -10,7 +10,7 @@ about: Report a reproducible problem
 ## Environment
 
 - Extension / OpenChamber / OpenCode version:
-- OS and sqlite3 availability:
+- Host OS and runtime version (Node/Bun/Electron, if known):
 - Panel or Work Status, layout and language:
 
 ## Sanitized diagnostics

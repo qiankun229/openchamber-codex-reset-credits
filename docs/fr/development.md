@@ -16,6 +16,13 @@ Vérifiez Compact/Tickets/Mini, les réglages, les vues étroites, les deux lang
 le focus clavier, la confirmation et les résultats incertains. Les captures
 publiques doivent utiliser des données fictives.
 
+Pour le contrôle Chromium reproductible du signalement, démarrez l’aperçu avec
+`PORT=4179 bun tests/preview.ts`, puis lancez `bun tests/report-panel.mjs` dans un
+autre terminal avec `PLAYWRIGHT_MODULE` pointant vers un module Playwright existant.
+Au besoin, indiquez son binaire Chromium installé via `CHROMIUM_EXECUTABLE`.
+Ce contrôle facultatif n’ajoute aucune dépendance de production : il utilise
+uniquement l’aperçu synthétique et indique le dossier temporaire des captures.
+
 Installez le dossier compilé dans **Paramètres → Extensions**. Recompilez et rechargez
 après modification ; désactivez puis réactivez après un changement du service.
 Les utilisateurs installent les entrées compilées `panel/` et `service/`, pas le TypeScript.
@@ -34,7 +41,9 @@ Le packaging crée un nouveau dossier installable, une archive `.tar.gz` et un f
 ## Limites à préserver
 
 - Manifeste : OpenChamber **>=2.5.0**, API **1**, dépendance de développement SDK **2.5.3**.
-- Un panneau de rail, une section Work Status, un service hôte autorisé à exécuter `sqlite3`.
+- Un panneau de rail, une section Work Status, un service hôte utilisant SQLite intégré,
+  sans commande externe dans le PATH. Les lectures utilisent un enfant bref du runtime
+  hôte, avec limites de délai/sortie. Un runtime sans module pris en charge échoue explicitement.
 - Lecture seule du schéma de connexion local par défaut d’OpenCode 2 uniquement.
 - Endpoints ChatGPT internes et fixes ; les jetons d’accès ne quittent le service
   que pour les requêtes authentifiées à ChatGPT. Pas de gestion des jetons de

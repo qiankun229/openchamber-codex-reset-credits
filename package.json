@@ -23,8 +23,7 @@
       },
       "service": {
         "entry": "service/main.js",
-        "runtime": "host",
-        "permissions": { "exec": ["sqlite3"] }
+        "runtime": "host"
       }
     }
   },

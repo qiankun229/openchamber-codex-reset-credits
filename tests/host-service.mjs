@@ -32,7 +32,7 @@ try {
   assert.equal(service.getServiceStatus(guest.id), 'ready');
   const accounts = await service.proxyGuestServiceRequest({ ...request, path: '/accounts' });
   assert.equal(accounts.status, 503);
-  assert(['DATABASE_UNAVAILABLE', 'SQLITE_MISSING'].includes(JSON.parse(accounts.body).error));
+  assert(['DATABASE_UNAVAILABLE', 'SQLITE_UNAVAILABLE'].includes(JSON.parse(accounts.body).error));
   assert.equal((await service.proxyGuestServiceRequest(request)).status, 200);
   await service.setGuestEnabled(guest.id, request.persistPath, false);
   assert.equal(service.getServiceStatus(guest.id), 'stopped');

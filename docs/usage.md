@@ -60,3 +60,14 @@ them, but does not establish that consumption failed. [Safety details](privacy.m
 
 **Refresh** re-reads accounts and credits, bypassing the normal cache (up to 30
 seconds). An account sign-in failure is shown as an error, never as zero credits.
+
+## Report a bug
+
+In the full panel, **Report a bug** opens the public GitHub template for you to
+review and submit. It works independently of the account service. No report is sent
+automatically and no diagnostics are added to the URL.
+
+Expand **Optional diagnostics** to review and copy only the surface, view, UI
+language and a fixed error code. If opening or copying fails, the panel offers
+selectable text for manual use. Add versions and the host OS yourself; never share
+account data, tokens, databases or raw logs, and never consume a real credit to reproduce a bug.

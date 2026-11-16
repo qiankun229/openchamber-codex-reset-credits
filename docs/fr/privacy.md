@@ -2,11 +2,15 @@
 
 ## Ce qui est lu
 
-Le service hôte exécute `sqlite3 -readonly` sur
+Le service hôte utilise SQLite intégré en lecture seule sur
 `~/.local/share/opencode/opencode.db`. Il sélectionne uniquement les entrées OAuth
 OpenAI : identifiant de connexion, libellé, état actif, jeton d’accès et identifiant
 de compte ChatGPT. Il ne sélectionne **ni** l’objet de connexion complet, **ni** les
 jetons de renouvellement, clés API ou identifiants MCP.
+
+Chaque lecture lance brièvement un enfant du runtime d’OpenChamber, avec un délai
+de cinq secondes et une sortie limitée à 2 Mio. Il n’exécute pas de commande
+`sqlite3` externe et ne demande pas de Node système dans le PATH.
 
 Le service utilise les droits de votre utilisateur, **sans sandbox système**. Son
 serveur HTTP local écoute sur `127.0.0.1` et exige le jeton de service OpenChamber,
@@ -22,8 +26,8 @@ stockage d’extension de l’hôte.
 
 L’origine HTTPS est fixe et les redirections refusées. Les jetons restent dans le
 service ; le panneau reçoit les libellés/identifiants de comptes, métadonnées des
-crédits et codes d’erreur fixes. Les corps d’erreur distants et diagnostics de
-sous-processus ne sont ni transmis ni journalisés.
+crédits et codes d’erreur fixes. Les corps d’erreur distants et diagnostics SQLite
+ne sont ni transmis ni journalisés.
 
 ## Ce qui n’arrive jamais
 

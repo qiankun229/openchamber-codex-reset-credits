@@ -1,11 +1,12 @@
 // Check the delivery, not source fixtures; never access the real OpenCode home.
 import assert from 'node:assert/strict';
 import { createHash, randomUUID } from 'node:crypto';
-import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { basename, join, resolve } from 'node:path';
 import { parseManifestJson } from '@openchamber/sdk/schemas';
+import { Database } from 'bun:sqlite';
 
 assert(process.argv[2], 'Usage: bun tests/package.ts /path/to/package');
 const folder = resolve(process.argv[2]);
@@ -35,25 +36,45 @@ const tar = Bun.spawn(['tar', '-tzf', folder + '.tar.gz'], { stdout: 'pipe', std
 const archived = (await new Response(tar.stdout).text()).trim().split('\n');
 assert.equal(await tar.exited, 0);
 assert.deepEqual(archived.filter(entry => !entry.endsWith('/')).sort(), expected.map(file => `${basename(folder)}/${file}`).sort());
-const home = await mkdtemp(join(tmpdir(), 'codex-package-'));
-const socket = createServer();
-await new Promise<void>(resolve => socket.listen(0, '127.0.0.1', resolve));
-const port = (socket.address() as { port: number }).port;
-await new Promise<void>(resolve => socket.close(() => resolve()));
-const token = randomUUID(), origin = `http://127.0.0.1:${port}`;
-const proc = Bun.spawn(['node', join(folder, 'service/main.js')], { cwd: folder, env: { PATH: process.env.PATH, HOME: home, XDG_DATA_HOME: join(home, 'data'), OPENCHAMBER_SERVICE_PORT: String(port), OPENCHAMBER_SERVICE_TOKEN: token }, stdout: 'ignore', stderr: 'pipe' });
-try {
-  let started = false;
-  for (let i = 0; i < 100; i++) {
-    try { assert.equal((await fetch(origin + '/health', { signal: AbortSignal.timeout(1000) })).status, 401); started = true; break; }
-    catch { await Bun.sleep(25); }
-  }
-  assert(started, 'Service must start in an empty home');
-  const request = (path: string) => fetch(origin + path, { headers: { authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(8000) });
-  assert.deepEqual(await (await request('/health')).json(), { ok: true });
-  const accounts = await request('/accounts');
-  assert.equal(accounts.status, 503);
-  assert(['DATABASE_UNAVAILABLE', 'SQLITE_MISSING'].includes((await accounts.json()).error));
-  assert.deepEqual(await (await request('/health')).json(), { ok: true });
-  console.log('Package passed: exact allowlist, manifest, privacy, checksum, archive, syntax, isolated service/authentication and bounded missing-database error.');
-} finally { proc.kill(); await proc.exited; await rm(home, { recursive: true, force: true }); }
+for (const runtime of [Bun.which('node')!, process.execPath]) {
+  const home = await mkdtemp(join(tmpdir(), 'codex-package-'));
+  const socket = createServer();
+  await new Promise<void>(resolve => socket.listen(0, '127.0.0.1', resolve));
+  const port = (socket.address() as { port: number }).port;
+  await new Promise<void>(resolve => socket.close(() => resolve()));
+  const token = randomUUID(), origin = `http://127.0.0.1:${port}`;
+  const proc = Bun.spawn([runtime, join(folder, 'service/main.js')], { cwd: folder, env: { PATH: '', HOME: home, XDG_DATA_HOME: join(home, 'data'), OPENCHAMBER_SERVICE_PORT: String(port), OPENCHAMBER_SERVICE_TOKEN: token }, stdout: 'ignore', stderr: 'pipe' });
+  try {
+    let started = false;
+    for (let i = 0; i < 100; i++) {
+      try { assert.equal((await fetch(origin + '/health', { signal: AbortSignal.timeout(1000) })).status, 401); started = true; break; }
+      catch { await Bun.sleep(25); }
+    }
+    assert(started, 'Service must start in an empty home');
+    const request = (path: string) => fetch(origin + path, { headers: { authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(8000) });
+    assert.deepEqual(await (await request('/health')).json(), { ok: true });
+    const accounts = await request('/accounts');
+    assert.equal(accounts.status, 503);
+    const code = (await accounts.json()).error;
+    assert(['DATABASE_UNAVAILABLE', 'SQLITE_UNAVAILABLE'].includes(code));
+    if (runtime === process.execPath) assert.equal(code, 'DATABASE_UNAVAILABLE', 'Bun must expose integrated SQLite');
+    const directory = join(home, '.local', 'share', 'opencode');
+    await mkdir(directory, { recursive: true });
+    const db = new Database(join(directory, 'opencode.db'), { create: true });
+    try {
+      db.run('CREATE TABLE credential (id TEXT, label TEXT, active INTEGER, integration_id TEXT, value TEXT, time_created INTEGER)');
+      // No OAuth accounts: success exercises the shipped reader without contacting ChatGPT.
+      db.run("INSERT INTO credential VALUES ('synthetic-other', 'Synthetic', 1, 'other', '{}', 1)");
+    } finally { db.close(); }
+    const available = await request('/accounts');
+    if (code === 'SQLITE_UNAVAILABLE') {
+      assert.equal(available.status, 503);
+      assert.equal((await available.json()).error, 'SQLITE_UNAVAILABLE');
+    } else {
+      assert.equal(available.status, 200, 'Shipped reader must work with an empty PATH');
+      assert.deepEqual((await available.json()).accounts, []);
+    }
+    assert.deepEqual(await (await request('/health')).json(), { ok: true });
+    console.log(`Package passed (${basename(runtime)}): allowlist, manifest, privacy, checksum, archive, syntax, isolated service/authentication; ${code === 'SQLITE_UNAVAILABLE' ? 'explicit unsupported-runtime error' : 'integrated SQLite with empty PATH'}.`);
+  } finally { proc.kill(); await proc.exited; await rm(home, { recursive: true, force: true }); }
+}

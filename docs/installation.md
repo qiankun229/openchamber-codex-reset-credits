@@ -4,8 +4,13 @@
 
 - OpenChamber **2.5.0 or newer**, desktop or web, with extension hosting enabled.
 - OpenCode **2**, with ChatGPT OAuth accounts in its default local credential database.
-- The **`sqlite3` executable on the OpenChamber host**, not just on the device
-  displaying the web UI. macOS includes it; other hosts may require installation.
+- **Integrated SQLite in the OpenChamber host runtime** (`node:sqlite`, or
+  `bun:sqlite` under Bun), not the device displaying the web UI. No external
+  `sqlite3` installation is needed. A runtime without either module reports
+  `SQLITE_UNAVAILABLE`; updating the SDK alone cannot add the missing module.
+
+The service briefly reuses the host's runtime in a child process for bounded
+database reads; it does not look for a system Node or SQLite executable on PATH.
 
 Only `~/.local/share/opencode/opencode.db` and the observed OpenCode 2 `credential`
 schema are supported. Remote OpenCode servers and custom paths are not supported.
@@ -19,7 +24,7 @@ schema are supported. Remote OpenCode servers and custom paths are not supported
    https://github.com/sofianbll/openchamber-codex-reset-credits
    ```
 
-3. Review and allow the **host service**, including execution of `sqlite3`, then
+3. Review and allow the **host service**, then
    enable **Codex resets**. The service reads access tokens and contacts ChatGPT
    with your account’s access; [review the boundaries](privacy.md).
 4. Open **Codex resets** in the rail or **Work Status**. Use Work Status’s section

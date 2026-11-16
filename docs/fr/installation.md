@@ -4,8 +4,13 @@
 
 - **OpenChamber 2.5.0 ou ultérieur**, sur bureau ou web, avec les extensions activées.
 - **OpenCode 2**, avec des comptes ChatGPT OAuth dans sa base locale par défaut.
-- L’exécutable **`sqlite3` sur l’hôte OpenChamber**, pas seulement sur l’appareil
-  qui affiche l’interface web. Il est fourni avec macOS ; ailleurs, installez-le si nécessaire.
+- **SQLite intégré au runtime de l’hôte OpenChamber** (`node:sqlite`, ou
+  `bun:sqlite` sous Bun), pas à l’appareil qui affiche l’interface web.
+  Aucune installation externe de `sqlite3` n’est nécessaire. Sans module intégré,
+  le service signale `SQLITE_UNAVAILABLE` ; mettre à jour le SDK seul ne l’ajoute pas.
+
+Le service réutilise brièvement le runtime de l’hôte dans un processus enfant pour
+borner les lectures ; il ne cherche ni Node système ni exécutable SQLite dans le PATH.
 
 Seuls `~/.local/share/opencode/opencode.db` et le schéma `credential` observé dans
 OpenCode 2 sont pris en charge. Pas de serveur OpenCode distant ni de chemin personnalisé.
@@ -19,7 +24,7 @@ OpenCode 2 sont pris en charge. Pas de serveur OpenCode distant ni de chemin per
    https://github.com/sofianbll/openchamber-codex-reset-credits
    ```
 
-3. Vérifiez et autorisez le **service hôte**, dont l’exécution de `sqlite3`, puis
+3. Vérifiez et autorisez le **service hôte**, puis
    activez **Codex resets**. Le service lit les jetons d’accès et contacte ChatGPT
    avec les droits de vos comptes ; [consultez les limites](privacy.md).
 4. Ouvrez **Codex resets** dans le rail ou **Work Status**. Les contrôles de section

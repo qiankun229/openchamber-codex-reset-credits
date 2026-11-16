@@ -60,3 +60,15 @@ suspendre les efface, sans prouver l’échec de la consommation. [Détails](pri
 
 **Actualiser** relit comptes et crédits en contournant le cache normal (30 secondes
 maximum). Une erreur de connexion apparaît comme une erreur, jamais comme zéro crédit.
+
+## Signaler un bug
+
+Dans le panneau complet, **Signaler un bug** ouvre le modèle public GitHub à relire
+et envoyer vous-même. Cette action ne dépend pas du service de comptes. Aucun rapport
+n’est envoyé automatiquement et aucun diagnostic n’est ajouté à l’URL.
+
+Dépliez **Diagnostic facultatif** pour relire et copier uniquement la surface, la vue,
+la langue de l’interface et un code d’erreur fixe. En cas d’échec d’ouverture ou de copie,
+des textes sélectionnables permettent une utilisation manuelle. Ajoutez vous-même les
+versions et l’OS de l’hôte ; ne partagez jamais de données de compte, jetons, bases ou logs
+bruts, et ne consommez pas de vrai crédit pour reproduire un bug.

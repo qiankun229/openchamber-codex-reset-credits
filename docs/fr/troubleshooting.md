@@ -18,7 +18,8 @@ les verrous en mémoire peuvent disparaître sans résoudre le résultat distant
 | Aucun compte ChatGPT OAuth | Connectez un compte ChatGPT dans **Paramètres → Fournisseurs**, puis actualisez. Les clés API ne comptent pas. |
 | `SIGN_IN_REQUIRED`, `ACCOUNT_ID_MISSING` | Reconnectez-vous via **Paramètres → Fournisseurs** dans OpenCode/OpenChamber, puis actualisez ici. L’extension ne renouvelle pas la connexion. |
 | Permission / capacité du service refusée, désactivée ou indisponible | Autorisez et activez le service hôte dans **Paramètres → Extensions**, puis actualisez. |
-| `SQLITE_MISSING` | Installez `sqlite3` sur l’hôte OpenChamber et rendez-le accessible au processus hôte. |
+| `SQLITE_UNAVAILABLE` | Le runtime de l’hôte ne fournit pas SQLite intégré. Utilisez un runtime avec `node:sqlite`, ou Bun avec `bun:sqlite`. Aucune installation externe de SQLite n’est nécessaire. |
+| `SQLITE_MISSING` | Ce message vient d’un ancien service. Mettez l’extension à jour et redémarrez son service ; le service actuel utilise SQLite intégré. |
 | `DATABASE_UNAVAILABLE` | Vérifiez les comptes connectés dans la base locale par défaut d’OpenCode et son accès en lecture pour l’utilisateur hôte. Ne modifiez pas les permissions à l’aveugle. |
 | `DATABASE_SCHEMA` | Le schéma ne correspond pas à celui pris en charge. Vérifiez la [compatibilité](development.md) ; signalez le code sans partager la base. |
 | `RATE_LIMITED` | Patientez avant d’actualiser ; répéter les demandes n’aide pas. |

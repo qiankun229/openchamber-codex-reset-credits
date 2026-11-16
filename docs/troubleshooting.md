@@ -16,7 +16,8 @@ can disappear without resolving the upstream result. [Safety details](privacy.md
 | No ChatGPT OAuth accounts | Connect a ChatGPT account in **Settings → Providers**, then refresh. API keys do not count. |
 | `SIGN_IN_REQUIRED`, `ACCOUNT_ID_MISSING` | Sign in again through **Settings → Providers** in OpenCode/OpenChamber, then refresh here. The extension cannot renew the login. |
 | Service permission / capability denied, disabled or unavailable | Allow and enable the extension’s host service in **Settings → Extensions**, then refresh. |
-| `SQLITE_MISSING` | Install `sqlite3` on the OpenChamber host and ensure it is available to the host process. |
+| `SQLITE_UNAVAILABLE` | The host runtime does not expose integrated SQLite. Use a host runtime with `node:sqlite`, or Bun with `bun:sqlite`. No external SQLite installation is required. |
+| `SQLITE_MISSING` | This message comes from an older service. Update the extension and restart its service; the current service uses integrated SQLite. |
 | `DATABASE_UNAVAILABLE` | Check that OpenCode has connected accounts in its default local database and that the host user can read it. Do not change database permissions blindly. |
 | `DATABASE_SCHEMA` | The database does not match the supported schema. Check [compatibility](development.md); report the code without sharing the database. |
 | `RATE_LIMITED` | Wait before refreshing; repeated refreshes do not help. |
